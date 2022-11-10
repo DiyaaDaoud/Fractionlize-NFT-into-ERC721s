@@ -14,6 +14,8 @@ contract YourContract is ERC721, Ownable {
   address public nft;
   uint public id;
 
+  uint tokenId;
+
   constructor() ERC721("Wrapper Bonding Curve", "WBC") {}
 
   function transfer1on1NFT(address _nft, uint _id) external onlyOwner {
@@ -37,7 +39,8 @@ contract YourContract is ERC721, Ownable {
     (bool success, ) = owner().call{value: ownerFees}("");
     require(success, "ETH transfer to owner failed");
 
-    _mint(msg.sender, 1);
+    _mint(msg.sender, tokenId);
+    tokenId += 1;
     price += change;
   }
 

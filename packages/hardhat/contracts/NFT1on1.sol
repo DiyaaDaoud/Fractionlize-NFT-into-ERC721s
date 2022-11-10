@@ -7,6 +7,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract NFT1on1 is ERC721 {
 
   constructor() ERC721("1on1", "1on1") {
-    _mint(msg.sender, 1);
+    _mint(msg.sender, 0);
   }
 }

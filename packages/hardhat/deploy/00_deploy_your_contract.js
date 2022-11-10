@@ -17,6 +17,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
+  await deploy("NFT1on1", {
+    from:deployer,
+    log: true,
+    waitConfirmations: 5,
+  });
+
   await deploy("YourContract", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
@@ -27,11 +33,21 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // Getting a previously deployed contract
   const YourContract = await ethers.getContract("YourContract", deployer);
+  console.log(YourContract.address);
+  const NFT1on1 = await ethers.getContract("NFT1on1", deployer);
+  console.log(NFT1on1);
+  console.log(deployer);
+  console.log(await NFT1on1.ownerOf(0));
+  await NFT1on1.approve(YourContract.address, 0);
+  await YourContract.transfer1on1NFT(NFT1on1.address, 0);
+  await YourContract.transferOwnership(
+    "0x478F7E1426a31E48AC22927C2Eea4c15d136C8Ea"
+  );
   /*  await YourContract.setPurpose("Hello");
-  
-    // To take ownership of yourContract using the ownable library uncomment next line and add the 
-    // address you want to be the owner. 
-    
+
+    // To take ownership of yourContract using the ownable library uncomment next line and add the
+    // address you want to be the owner.
+
     await YourContract.transferOwnership(
       "ADDRESS_HERE"
     );
@@ -79,4 +95,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   //   console.error(error);
   // }
 };
-module.exports.tags = ["YourContract"];
+module.exports.tags = ["YourContract", "NFT1on1"];
