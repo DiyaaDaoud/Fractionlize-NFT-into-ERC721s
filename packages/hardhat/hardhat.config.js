@@ -257,6 +257,15 @@ module.exports = {
   solidity: {
     compilers: [
       {
+        version: "0.8.11",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
         version: "0.8.4",
         settings: {
           optimizer: {
@@ -280,8 +289,11 @@ module.exports = {
     solcVersion: "0.7.6",
   },
   namedAccounts: {
-    deployer: {
+    nftDeployer: {
       default: 0, // here this will by default take the first account as deployer
+    },
+    fractionsDeployer: {
+      default: 1,
     },
   },
   etherscan: {
