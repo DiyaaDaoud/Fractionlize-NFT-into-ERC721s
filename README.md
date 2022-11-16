@@ -60,7 +60,7 @@ or for a fresh deployment:
 yarn deploy --reset --network localhost
 ```
 
-> Now to check the functionality real quick, run the general trading script and check the results
+> Keep the local chain running after deployment. Now to check the functionality real quick, run the general trading script and check the results
 ```bash
 cd packages/hardhat
 yarn hardhat run scripts/generalTrading.js --network localhost
