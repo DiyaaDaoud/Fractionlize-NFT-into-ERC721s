@@ -1,122 +1,67 @@
-# 🏗 Scaffold-ETH
+# 🏗 Fractionalize ERC721 NFT into ERC721 fractions
+> this repo is still under development, and it inherits from the marvelous [Nibbl](https://github.com/NibblNFT/nibbl-smartcontracts) project.
 
-> everything you need to build on Ethereum! 🚀
+# Main Idea
 
-🧪 Quickly experiment with Solidity using a frontend that adapts to your smart contract:
+In this project, we aim to fractionalize a 1/1 NFT, BUT NOT INTO ERC20 token, into ERC721 fractions. this process is controlled using [bonding curves and Bancor formulas](https://yos.io/2018/11/10/bonding-curves/).
+In general, Bancor formulas gives us the ability to caclulate:
+- Purchase Return: which is the amount of tokens the buyer will recieve after paying some amount of ETH, depending on the instantaneous ReserveTokenBalance, ContinuousTokenBalance, and the ReserveRatio.
+- Sale Return: which is the amount of ETH the seller will gain after selling some amount of tokens, depending on the instantaneous ReserveTokenBalance, ContinuousTokenSupply, and the ReserveRatio. 
 
-![image](https://user-images.githubusercontent.com/2653167/124158108-c14ca380-da56-11eb-967e-69cde37ca8eb.png)
+In our case, we are dealing with a single fraction buying/selling at once. So, instead of calculating the PurchaseReturn, we will calculate the single fraction price as :
 
+![image](https://i.ibb.co/TLrpkb6/Bancor-Price-Formula.png)
 
-# 🏄‍♂️ Quick Start
+# Procedure
 
-Prerequisites: [Node (v16 LTS)](https://nodejs.org/en/download/) plus [Yarn (v1.x)](https://classic.yarnpkg.com/en/docs/install/) and [Git](https://git-scm.com/downloads)
+this project relies on two bonding curves:
+- Main curve: has a statice Reserve Ratio. this curve represents what we aim our trading flow and how the price changing would be in the long term.
+- Temporary curve: has a flexible parameters.
 
-> clone/fork 🏗 scaffold-eth:
+WHY?
 
-```bash
-git clone https://github.com/scaffold-eth/scaffold-eth.git
-```
+Let's suppose we have a single bonding curve. The owner valued his NFT to be 50 ETH, he wants the bonding curve to have a Reserve Ratio of 50%, and the initial fraction price to be 0.01 ETH. Logically, the owner would want people to buy at or above the 50 ETH point at the curve (each point is defined by the number of fractions supplied, and the price of the fraction). So, he MUST kickoff the liquidity by adding amount equals the area under the curve from the origin to the 50 ETH point. this is a perpendicular triangle with two sides 5000 and 0.01, its area is 1/2 * 5000 * 0.01 = 25. So, he must add 25 ETH to the curve, and then mints 5000 fractions, so the reserve ratio would become 25/(5000*0.01) = 50%, and people could start buying at atleast 0,01 ETH per fraction.
+
+Now, 25 ETH (as example) is not a considerable amount of money to pay at once. to overcome this, we can split the whole curve into Two: 
+- the first one in the interval [0,5000] fractions
+- the second one starts from 5000.
+
+Now,the owner can kickoff the liquidity of the system by adding less amount, let's say 5 ETH.  so the reserve ratio is now 10% in the first curve. This defines the shape of the temporary curve, while the primary curve will have a constant desired reserve ratio of 50%.
+Our goal now is to adjust the shape of the temporary curve so it matches the main one.
+
+# 🏄‍♂️ Trading
+
+- when we buy/sell on the main curve: we take a royalty fee to the owner + a small fee that is added to the balance in the temporary curve to adjust its shape.
+- when we buy/sell on the temporary curve: we only take the the onwer fee, as the reserve ratio should be stable while we trade on the curve.
+
+> SO, what decides which curve to buy or sell on? 
+
+A GENERAL RULE: buying/selling will always be on the main curve as long as the number of minted fractions in the system is larger or equal the number of fractions minted initialy by the owner (5000 in our example).
+
+The owner is made to mint this amount to make sure that we start at a certain level. so unless the owner sells some of his fractions, we will always buy and sell on the main curve, and adjust the shape of the temporary curve using the liquidity fee from trading.
+
+# Quick start
 
 > install and start your 👷‍ Hardhat chain:
 
 ```bash
-cd scaffold-eth
 yarn install
 yarn chain
 ```
 
-> in a second terminal window, start your 📱 frontend:
+> in a second terminal window, 🛰 deploy your contract:
 
 ```bash
-cd scaffold-eth
-yarn start
+yarn deploy --network localhost
 ```
-
-> in a third terminal window, 🛰 deploy your contract:
+or for a fresh deployment:
 
 ```bash
-cd scaffold-eth
-yarn deploy
+yarn deploy --reset --network localhost
 ```
 
-🔏 Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
-
-📝 Edit your frontend `App.jsx` in `packages/react-app/src`
-
-💼 Edit your deployment scripts in `packages/hardhat/deploy`
-
-📱 Open http://localhost:3000 to see the app
-
-# 📚 Documentation
-
-Documentation, tutorials, challenges, and many more resources, visit: [docs.scaffoldeth.io](https://docs.scaffoldeth.io)
-
-
-# 🍦 Other Flavors
-- [scaffold-eth-typescript](https://github.com/scaffold-eth/scaffold-eth-typescript)
-- [scaffold-eth-tailwind](https://github.com/stevenpslade/scaffold-eth-tailwind)
-- [scaffold-nextjs](https://github.com/scaffold-eth/scaffold-eth/tree/scaffold-nextjs)
-- [scaffold-chakra](https://github.com/scaffold-eth/scaffold-eth/tree/chakra-ui)
-- [eth-hooks](https://github.com/scaffold-eth/eth-hooks)
-- [eth-components](https://github.com/scaffold-eth/eth-components)
-- [scaffold-eth-expo](https://github.com/scaffold-eth/scaffold-eth-expo)
-- [scaffold-eth-truffle](https://github.com/trufflesuite/scaffold-eth)
-
-
-
-# 🔭 Learning Solidity
-
-📕 Read the docs: https://docs.soliditylang.org
-
-📚 Go through each topic from [solidity by example](https://solidity-by-example.org) editing `YourContract.sol` in **🏗 scaffold-eth**
-
-- [Primitive Data Types](https://solidity-by-example.org/primitives/)
-- [Mappings](https://solidity-by-example.org/mapping/)
-- [Structs](https://solidity-by-example.org/structs/)
-- [Modifiers](https://solidity-by-example.org/function-modifier/)
-- [Events](https://solidity-by-example.org/events/)
-- [Inheritance](https://solidity-by-example.org/inheritance/)
-- [Payable](https://solidity-by-example.org/payable/)
-- [Fallback](https://solidity-by-example.org/fallback/)
-
-📧 Learn the [Solidity globals and units](https://docs.soliditylang.org/en/latest/units-and-global-variables.html)
-
-# 🛠 Buidl
-
-Check out all the [active branches](https://github.com/scaffold-eth/scaffold-eth/branches/active), [open issues](https://github.com/scaffold-eth/scaffold-eth/issues), and join/fund the 🏰 [BuidlGuidl](https://BuidlGuidl.com)!
-
-  
- - 🚤  [Follow the full Ethereum Speed Run](https://medium.com/@austin_48503/%EF%B8%8Fethereum-dev-speed-run-bd72bcba6a4c)
-
-
- - 🎟  [Create your first NFT](https://github.com/scaffold-eth/scaffold-eth/tree/simple-nft-example)
- - 🥩  [Build a staking smart contract](https://github.com/scaffold-eth/scaffold-eth/tree/challenge-1-decentralized-staking)
- - 🏵  [Deploy a token and vendor](https://github.com/scaffold-eth/scaffold-eth/tree/challenge-2-token-vendor)
- - 🎫  [Extend the NFT example to make a "buyer mints" marketplace](https://github.com/scaffold-eth/scaffold-eth/tree/buyer-mints-nft)
- - 🎲  [Learn about commit/reveal](https://github.com/scaffold-eth/scaffold-eth-examples/tree/commit-reveal-with-frontend)
- - ✍️  [Learn how ecrecover works](https://github.com/scaffold-eth/scaffold-eth-examples/tree/signature-recover)
- - 👩‍👩‍👧‍👧  [Build a multi-sig that uses off-chain signatures](https://github.com/scaffold-eth/scaffold-eth/tree/meta-multi-sig)
- - ⏳  [Extend the multi-sig to stream ETH](https://github.com/scaffold-eth/scaffold-eth/tree/streaming-meta-multi-sig)
- - ⚖️  [Learn how a simple DEX works](https://medium.com/@austin_48503/%EF%B8%8F-minimum-viable-exchange-d84f30bd0c90)
- - 🦍  [Ape into learning!](https://github.com/scaffold-eth/scaffold-eth/tree/aave-ape)
-
-# 💌 P.S.
-
-🌍 You need an RPC key for testnets and production deployments, create an [Alchemy](https://www.alchemy.com/) account and replace the value of `ALCHEMY_KEY = xxx` in `packages/react-app/src/constants.js` with your new key.
-
-📣 Make sure you update the `InfuraID` before you go to production. Huge thanks to [Infura](https://infura.io/) for our special account that fields 7m req/day!
-
-# 🏃💨 Speedrun Ethereum
-Register as a builder [here](https://speedrunethereum.com) and start on some of the challenges and build a portfolio.
-
-# 💬 Support Chat
-
-Join the telegram [support chat 💬](https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA) to ask questions and find others building with 🏗 scaffold-eth!
-
----
-
-🙏 Please check out our [Gitcoin grant](https://gitcoin.co/grants/2851/scaffold-eth) too!
-
-### Automated with Gitpod
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#github.com/scaffold-eth/scaffold-eth)
+> Now to check the functionality real quick, run the general trading script and check the results
+```bash
+cd packages/hardhat
+yarn hardhat run scripts/generalTrading.js --network localhost
+```
