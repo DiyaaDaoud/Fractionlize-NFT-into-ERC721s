@@ -9,8 +9,9 @@ In general, Bancor formulas gives us the ability to caclulate:
 - Sale Return: which is the amount of ETH the seller will gain after selling some amount of tokens, depending on the instantaneous ReserveTokenBalance, ContinuousTokenSupply, and the ReserveRatio. 
 
 In our case, we are dealing with a single fraction buying/selling at once. So, instead of calculating the PurchaseReturn, we will calculate the single fraction price as :
-
-![image](https://i.ibb.co/TLrpkb6/Bancor-Price-Formula.png)
+<p align="center">
+<img src="https://i.ibb.co/TLrpkb6/Bancor-Price-Formula.png"/>
+</p>
 
 # Procedure
 
